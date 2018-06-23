@@ -23,8 +23,21 @@
     <!-- Custom styles for this template -->
     <link href="css/resume.min.css" rel="stylesheet">
     
-    <!-- Styles for particles.js div-->
-    <link rel="stylesheet" type="text/css" href="css/particles.css">
+    <!-- Styles forfor proton canvas -->
+    <style type="text/css">
+        #canvas {
+            display: block;
+            position: absolute;
+            z-index: 0;
+            top: 0;
+            left: 0;
+            height: 400px;
+            width: 100%;
+            background: #ffffff;
+        }
+    </style>
+
+
 
   </head>
 
@@ -74,25 +87,29 @@
       </div>
     </nav>
 
+
     <div class="container-fluid p-0">
-
-
 
 
       <section class="resume-section p-3 p-lg-5 d-flex d-column" id="about">
 
         <!-- particles.js container -->
-        <div id="particles-js"></div> 
+
+
         <div class="my-auto">
 
+          <canvas id="canvas"></canvas>
 
           <h1 class="mb-0">Mohammad Abu
             <span class="text-primary">Obaida</span>
           </h1>
-          <div class="subheading mb-5">401 SW 109th Ave · Miami, FL 33174 · (347) 788-7137 ·
+          <div class="subheading mb-5">Miami, FL, 33174 · US · (347) 788-7137 ·
             <a href="mailto:name@email.com">mobai001@fiu.edu</a>
           </div>
-          <p class="mb-5">I am Mohammad Obaida, a Ph. D. Candidate studying Computer Science at Florida International University - FIU, Miami, Florida, US. Currently, I am a research assistant working on high-performance computing system and application performance prediction. I have experience with distributed systems, parallel systems, performance modeling, and simulation. </p>
+          <p class="mb-5">I am Mohammad Obaida, a Ph. D. Candidate studying Computer Science at Florida International University - FIU, Miami, Florida, US. Currently, I am a research assistant working on high-performance computing system and application performance prediction. I have experience with distributed systems, parallel systems, performance modeling, and simulation. 
+
+
+</p>
           <ul class="list-inline list-social-icons mb-0">
             <li class="list-inline-item">
               <a href="https://facebook.com/abu.obaida">
@@ -416,7 +433,7 @@
         <div class="my-auto">
           <h2 class="mb-5">Interests</h2>
           <p>Apart from being a researcher, I like to code and prototype my ideas in Python. I like to read about disruptive ideas and an small-time investor in public companies in US. If you are building something amazing like how/where Amzon is encrypting the data for AWS/S3, I would like to know more and discuss the details. </p>
-          <p class="mb-0">I  like to visit places and a big fan of Katana sword fights. I like to sprint above 10 miles/hour hike to the top of mountains. In the weekend I like getting closer to nature, mountains, and exploring outdoors. I enjoy playing computer games more specifically,  League of Legends. My favorite role is jungler/fill who loves Nocturne to hunt with Nocturne. </p>
+          <p class="mb-0">I  like to visit places and a big fan of Katana sword fights. I like to sprint above 10 miles/hour hike to the top of mountains. In the weekend I like getting closer to nature, mountains, and exploring outdoors. I enjoy playing computer games more specifically,  League of Legends. My favorite role is jungler/fill who loves hunting with Nocturne. </p>
         </div>
       </section>
 
@@ -455,8 +472,141 @@
 
     <!-- Custom scripts for this template -->
     <script src="js/resume.min.js"></script>
-    <!-- particles.js lib - https://github.com/VincentGarreau/particles.js --> <script src="http://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script> 
-    <script src="js/particles.js"></script>
+
+
+    <!-- proton.js -->
+    <script src="js/proton.min.js"></script>
+    <script>
+        var canvas;
+        var context;
+        var proton;
+        var renderer;
+        var emitter, pointZone;
+        var R, num;
+        var pointer;
+
+        main();
+
+        function main() {
+            num = Math.min(parseInt(window.innerWidth / (1000 / 145)), 400);
+            R = 140;
+            pointer = { x: 0, y: 0, r: 0 };
+
+            initCanvas();
+            createProton(num);
+            setTimeout(addMouseEvent, 200);
+            addRenderer();
+            tick();
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById("canvas");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            context = canvas.getContext('2d');
+        }
+
+        function createProton(num) {
+            proton = new Proton;
+
+            emitter = new Proton.Emitter();
+            emitter.rate = new Proton.Rate(new Proton.Span(num), new Proton.Span(.05, .2));
+
+            emitter.addInitialize(new Proton.Mass(1));
+            emitter.addInitialize(new Proton.Radius(1, 4));
+            emitter.addInitialize(new Proton.Life(Infinity));
+
+            pointZone = new Proton.Position(new Proton.RectZone(0, 0, canvas.width, canvas.height));
+            emitter.addInitialize(pointZone);
+            emitter.addInitialize(new Proton.Velocity(new Proton.Span(.3, .6), new Proton.Span(0, 360), 'polar'));
+
+            emitter.addBehaviour(new Proton.Alpha(Proton.getSpan(0.2, .9)));
+            emitter.addBehaviour(new Proton.Color('#59214b'));
+            emitter.addBehaviour(new Proton.CrossZone(new Proton.RectZone(0, 0, canvas.width, canvas.height), 'cross'));
+
+            emitter.emit('once');
+            emitter.damping = 0;
+            proton.addEmitter(emitter);
+        }
+
+        function addRenderer() {
+            renderer = new Proton.CanvasRenderer(canvas);
+            renderer.onProtonUpdateAfter = function () {
+                var particles = emitter.particles;
+
+                for (var i = 0; i < particles.length; i++) {
+                    for (var j = i + 1; j < particles.length; j++) {
+                        var pA = particles[i];
+                        var pB = particles[j];
+                        var dis = pA.p.distanceTo(pB.p);
+
+                        if (dis < R) {
+                            var alpha = (1 - dis / R) * .5;
+                            context.strokeStyle = 'rgba(215,94,115,' + alpha + ')';
+                            context.beginPath();
+                            context.moveTo(pA.p.x, pA.p.y);
+                            context.lineTo(pB.p.x, pB.p.y);
+                            context.closePath();
+                            context.stroke();
+                        }
+                    }
+                }
+            }
+
+            proton.addRenderer(renderer);
+        }
+
+        function addMouseEvent() {
+            emitter.rate = new Proton.Rate(new Proton.Span(3), .5);
+            emitter.removeInitialize(pointZone);
+
+            //canvas.addEventListener('mousedown', function (e) {
+            //    for (var i = 0; i < 3; i++)
+            //        emitter.particles[i].dead = true;
+
+            //    setTimeout(function () {
+            //        emitter.p.x = getPos(e).x;
+            //        emitter.p.y = getPos(e).y;
+            //        emitter.emit('once');
+            //    }, 60);
+            //});
+            
+            //canvas.addEventListener('mouseup', function (e) {
+            //    emitter.stop();
+            //});
+
+            canvas.addEventListener('mousemove', function (e) {
+                var p0 = emitter.particles[0];
+                p0.radius = 0;
+                var ease = .3;
+
+                p0.p.x += (getPos(e).x - p0.p.x) * ease;
+                p0.p.y += (getPos(e).y - p0.p.y) * ease;
+            });
+        }
+
+        /// 
+        var _pos = { x: 0, y: 0 };
+        function getPos(e) {
+            if (e.layerX !== undefined) {
+                _pos.x = e.layerX;
+                _pos.y = e.layerY;
+            } else if (e.offsetX !== undefined) {
+                _pos.x = e.offsetX;
+                _pos.y = e.offsetY;
+            }
+
+            return _pos;
+        }
+
+        function tick() {
+            requestAnimationFrame(tick);
+
+            proton.update();
+            //proton.stats.update(3);
+        }
+    </script>
+
 
   </body>
 
